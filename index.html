@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>2次関数グラフ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; }
+    canvas { max-width: 600px; margin: 20px auto; }
+    #answer { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>2次関数のグラフ</h2>
+  <button onclick="generateAndDraw()">新しい問題を出す</button>
+  <p id="formula"></p>
+  <button onclick="showAnswer()">答えを表示</button>
+  <canvas id="graphCanvas" width="600" height="400" style="display: none;"></canvas> <!-- 初期は非表示 -->
+
+  <div id="answer" style="display: none;">
+    <p id="vertex">頂点: </p>
+    <p id="axis">軸: </p>
+  </div>
+
+  <script>
+    let myChart = null;
+    let a, b, c, D;
+
+    // 問題を出す
+    function generateAndDraw() {
+      do {
+        a = Math.floor(Math.random() * 21) - 10; // -10〜10
+        b = Math.floor(Math.random() * 41) - 20; // -20〜20
+        c = Math.floor(Math.random() * 41) - 20; // -20〜20
+        D = b * b - 4 * a * c;
+      } while (a === 0 || !Number.isInteger(Math.sqrt(Math.abs(D)))); // a≠0, 判別式が平方数
+
+      // 関数式の表示
+      const formulaText = `y = ${a}x² ${b >= 0 ? '+' : ''}${b}x ${c >= 0 ? '+' : ''}${c}`;
+      document.getElementById("formula").textContent = formulaText;
+
+      // 初期状態ではグラフと答えは非表示
+      document.getElementById('graphCanvas').style.display = 'none';
+      document.getElementById('answer').style.display = 'none';
+    }
+
+    // 答えを表示
+    function showAnswer() {
+      // 頂点と軸の計算
+      const xVertex = -b / (2 * a);
+      const yVertex = a * xVertex * xVertex + b * xVertex + c;
+
+      // 描画データ
+      const xValues = [];
+      const yValues = [];
+      for (let x = xVertex - 10; x <= xVertex + 10; x += 0.1) {
+        xValues.push(x);
+        yValues.push(a * x * x + b * x + c);
+      }
+
+      // 既存グラフがあれば削除
+      const ctx = document.getElementById('graphCanvas').getContext('2d');
+      if (myChart) myChart.destroy();
+
+      // グラフ描画
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: xValues,
+          datasets: [
+            {
+              label: `y = ${a}x² ${b >= 0 ? '+' : ''}${b}x ${c >= 0 ? '+' : ''}${c}`,
+              data: yValues,
+              borderColor: 'blue',
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+              tension: 0.1
+            },
+            {
+              label: '頂点',
+              data: [{ x: xVertex, y: yVertex }],
+              borderColor: 'red',
+              backgroundColor: 'red',
+              pointRadius: 6,
+              showLine: false
+            },
+            {
+              label: '軸',
+              data: Array.from({ length: yValues.length }, (_, i) => ({
+                x: xVertex,
+                y: yValues[i]
+              })),
+              borderColor: 'gray',
+              borderWidth: 1,
+              pointRadius: 0,
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0
+            }
+          ]
+        },
+        options: {
+          scales: {
+            x: {
+              type: 'linear',
+              title: { display: true, text: 'x' }
+            },
+            y: {
+              type: 'linear',
+              title: { display: true, text: 'y' }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                usePointStyle: true,
+              }
+            }
+          }
+        }
+      });
+
+      // グラフを表示
+      document.getElementById('graphCanvas').style.display = 'block';
+
+      // 頂点と軸の表示
+      const vertexText = `頂点: (${xVertex.toFixed(2)}, ${yVertex.toFixed(2)})`;
+      const axisText = `軸: x = ${xVertex.toFixed(2)}`;
+
+      document.getElementById('vertex').textContent = vertexText;
+      document.getElementById('axis').textContent = axisText;
+
+      // 答えの表示
+      document.getElementById('answer').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
